@@ -14,12 +14,11 @@
 // - https://www.w3schools.com/nodejs/
 // - https://www.freecodecamp.org/learn/javascript-algorithms-and-data-structures/
 
-// There is also a crush course on JS fundamentals and asynchronous code 
+// There is also a crush course on JS fundamentals and asynchronous code
 // under the local folders:
 
 // - 1_JS_Basics
 // - 2_JS_Async
-
 
 // Exercise 0. Create a simple function.
 ////////////////////////////////////////
@@ -31,12 +30,13 @@
 // click on the "Play" button on the top right corner of the editor to execute
 // the code.
 
-// Unlike environments like Jupyter, the entire content of this file will 
-// be executed, until you tell the process to stop. 
+// Unlike environments like Jupyter, the entire content of this file will
+// be executed, until you tell the process to stop.
 
 // This line will tell the process to stop.
-process.exit(0);
-console.log('I am a sad line...I will not be printed to console :(');
+
+//console.log("I am a sad line...I will not be printed to console :(");
+//process.exit(0);
 
 // a. Move the sad line above and below `process.exit(0);` to check that the
 // process stops where it is intended to. When you are done, comment out both
@@ -47,9 +47,15 @@ console.log('I am a sad line...I will not be printed to console :(');
 // Hint: never created a function in JS? Check this page:
 // https://javascript.info/function-basics
 
-// Hint: German keyboard curly brackets: Alt-gr-7 (open), Alt-gr-8 (close).
-
 let exercise = 0;
+
+function exit() {
+  console.log("Excercise " + exercise);
+  process.exit(0);
+}
+
+//exit();
+// Hint: German keyboard curly brackets: Alt-gr-7 (open), Alt-gr-8 (close).
 
 // Your code here!
 
@@ -65,16 +71,15 @@ let exercise = 0;
 // use of the semicolon.
 
 // Checkpoint. Under what conditions can you reuse the same name (i.e., `exit`)
-// for all three functions? 
+// for all three functions?
 
 // Your code here!
-
 
 // Exercise 1. NPM Warm Up.
 ///////////////////////////
 exercise = 1;
 
-// Execute the code below with Code Runner without errors. What is this 
+// Execute the code below with Code Runner without errors. What is this
 // code for? More on the next exercise.
 
 // Hint: you might need to install the dotenv package with npm.
@@ -86,6 +91,6 @@ exercise = 1;
 
 // Hint3: don't forget to uncomment the call to `exit()`.
 
-require('dotenv').config();
+require("dotenv").config();
 
 // exit();
