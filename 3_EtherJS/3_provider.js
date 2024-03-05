@@ -1,6 +1,5 @@
-
 // Loading path module for operations with file paths.
-const path = require('path');
+const path = require("path");
 
 // Ethers JS: Providers.
 ////////////////////////
@@ -17,68 +16,69 @@ const path = require('path');
 // Hint: As you did in file 1_wallet.
 
 // Your code here!
-
+pathToDotEnv = path.join(__dirname, "..", ".env");
+// console.log(pathToDotEnv);
+require("dotenv").config({ path: pathToDotEnv });
+const ethers = require("ethers");
 
 // Exercise 1. Connect to Mainnet (a.k.a welcome async!).
 /////////////////////////////////////////////////////////
 
-// Whenever you interact with a blockchain you are in the "async" domain. 
+// Whenever you interact with a blockchain you are in the "async" domain.
 
-// In JavaScript, you generally use "promises" to handle asynchronous   
+// In JavaScript, you generally use "promises" to handle asynchronous
 // code execution. There are two ways of working with promises:
 //
 // 1. .then() notation (standard Promises)
 // 2. async/await pattern (newer notation)
 //
-// Important! You can use promises anywhere in your code, but you can use 
+// Important! You can use promises anywhere in your code, but you can use
 // "await" only inside an "async" function. This makes things a bit more
 // complicated, but not too much.
-// 
+//
 // If this is new to you, you can read more about these here:
 // https://javascript.info/async
 
-// You can also check the 2_JS_Async folder for exercises on asynchronous 
+// You can also check the 2_JS_Async folder for exercises on asynchronous
 // code in JavaScript.
 
-// a. Create a JSON RPC provider and connect to the Ethereum Mainnet.  
+// a. Create a JSON RPC provider and connect to the Ethereum Mainnet.
 
-// Hint: check EthersJS docs for the method `JsonRpcProvider` and what 
+// Hint: check EthersJS docs for the method `JsonRpcProvider` and what
 // parameters it needs (nested hint: you need something from the .env file).
-
-
-// Your code here!
-
+const providerKey = process.env.ALCHEMY_KEY;
+const mainnetUrl = `${process.env.ALCHEMY_MAINNET_API_URL}${providerKey}`;
+const mainnetProvider = new ethers.JsonRpcProvider(mainnetUrl);
 
 // b. Verify that the network's name is "mainnet" and the chain id is 1.
 
 // Hint: `getNetwork()`.
 
-// Hint2: the value of chain id returned by Ethers JS is of type "BigInt". 
+// Hint2: the value of chain id returned by Ethers JS is of type "BigInt".
 // As the name suggests, that is a very a data type capable of holding very
 // large (integer) numbers. Remember to cast it to Number for a nicer display.
-// https://javascript.info/bigint 
+// https://javascript.info/bigint
 
 // b1. Use the async/await pattern to do the job.
 
-
 // This is an asynchronous anonymous self-executing function. It is a ugly
 // construct, but it allows you to use await inside its body.
-(async () => {
-    
-    // Your code maybe here!
-
-})();
+//(async () => {
+// Your code maybe here!
+//})();
 
 // However, the async function could also be named, and the result is:
 const network = async () => {
-    
-    // Your code here!
-
+  // Your code here!
+  let net = await mainnetProvider.getNetwork();
+  console.log("Async/Await!");
+  console.log("Provider's network name: ", net.name);
+  console.log("Provider's network chain id: ", Number(net.chainId));
 };
 
 // which you can then call:
 
-// network();
+network();
 
 // The second (less compact) notation has the advantage that we can invoke
 // the code only when needed, so it is preferred in this exercise sheet.
@@ -91,8 +91,6 @@ const network = async () => {
 // of process.exit(). Why?
 // return;
 
-
-
 // Exercise 2. Block Number.
 ////////////////////////////
 
@@ -101,29 +99,36 @@ const network = async () => {
 
 // // Look up the current block number
 const blockNum = async () => {
-    
-    // Your code here!
-
+  let blockNumber = await mainnetProvider.getBlockNumber();
+  console.log(blockNumber);
 };
 
-// blockNum();
+blockNum();
 
 // b. The Ethereum mainnet is one of the most secure blockchains in the world.
-// The testnets of Ethereum are a bit less secure because they might have 
+// The testnets of Ethereum are a bit less secure because they might have
 // experimental features, but also because they are replaced often and so
 // they have a shorter chain. How shorter?
 
 // Connect to the Goerli test net, get the latest block number and print
 // the difference in chain length with mainnet.
 
-
 // Look up the current block number in Mainnet and Goerli.
-const blockDiff = async () => {
+const sepoliaUrl = `${process.env.ALCHEMY_SEPOLIA_API_URL}${providerKey}`;
+// console.log(sepoliaUrl);
+const sepoliaProvider = new ethers.JsonRpcProvider(sepoliaUrl);
 
+const blockDiff = async () => {
+  let blockNumberM = await mainnetProvider.getBlockNumber();
+  console.log("Mainnet block number: ", blockNumberM);
+
+  let blockNumberS = await sepoliaProvider.getBlockNumber();
+  console.log("Sepolia block number: ", blockNumberS);
+
+  console.log("Mainnet is " + (blockNumberM - blockNumberS) + " blocks ahead");
 };
 
-// blockDiff();
-
+blockDiff();
 
 // Exercise 3. Block time.
 //////////////////////////
@@ -139,72 +144,65 @@ const blockDiff = async () => {
 
 // Run the function once for Mainnet and once for Goerli. Do you get similar
 // results?
-
+/*
 // Asynchronous functions with pre-defined input parameters.
 const checkBlockTime = async (providerName = "mainnet", blocks2check = 3) => {
+  // JS Ternary Operator.
+  let provider =
+    providerName.toLowerCase() === "mainnet" ? mainnetProvider : goerliProvider;
 
-    // JS Ternary Operator.
-    let provider = providerName.toLowerCase() === "mainnet" ? 
-        mainnetProvider : goerliProvider;
+  // Get initial block number and timestamp.
+  let d = Date.now();
+  let blockNumber = await provider.getBlockNumber();
+  console.log(providerName, "Current Block num:", blockNumber);
 
-    // Get initial block number and timestamp.
-    let d = Date.now();
-    let blockNumber = await provider.getBlockNumber();
-    console.log(providerName, 'Current Block num:', blockNumber);
+  // Keep track of how many blocks to check.
+  let blocksChecked = 0;
 
-    // Keep track of how many blocks to check.
-    let blocksChecked = 0;
+  // Poll the blockchain every second to check for a new block number.
+  let myInterval = setInterval(async () => {
+    let newBlockNumber = await provider.getBlockNumber();
 
-    // Poll the blockchain every second to check for a new block number.
-    let myInterval = setInterval(async () => {
+    // Compare block numbers.
+    if (newBlockNumber !== blockNumber) {
+      // Check time.
+      let d2 = Date.now();
+      let timeDiff = d2 - d;
+      console.log(providerName, "New Block num:", newBlockNumber);
+      console.log(providerName, "It took: ", timeDiff);
 
-        let newBlockNumber = await provider.getBlockNumber();
-        
-        // Compare block numbers.
-        if (newBlockNumber !== blockNumber) {
-            // Check time.
-            let d2 = Date.now();
-            let timeDiff = d2 - d;
-            console.log(providerName, "New Block num:", newBlockNumber);
-            console.log(providerName, "It took: ", timeDiff);
-            
-            // Update loop variables.
-            d = d2;
-            if (++blocksChecked >= blocks2check) {
-                clearInterval(myInterval);
-            }
-            blockNumber = newBlockNumber;
-        }
-
-    }, 1000);
-    
+      // Update loop variables.
+      d = d2;
+      if (++blocksChecked >= blocks2check) {
+        clearInterval(myInterval);
+      }
+      blockNumber = newBlockNumber;
+    }
+  }, 1000);
 };
 
 // checkBlockTime("Mainnet");
 
 // checkBlockTime("Goerli");
 
-// b. Bonus. The checkBlockTime function can be rewritten more efficiently 
-// using the Observer pattern offer by EtherS JS and listening to the 
+// b. Bonus. The checkBlockTime function can be rewritten more efficiently
+// using the Observer pattern offer by EtherS JS and listening to the
 // "block" event. See:
 // https://docs.ethers.org/v5/api/providers/provider/#Provider--event-methods
 
-// Do it! 
+// Do it!
 // Hint: setInterval/clearInterval are replaced by on/off calls.
 
 const checkBlockTime2 = async (providerName = "mainnet", blocks2check = 3) => {
-
-    // Your code here!
-
+  // Your code here!
 };
 
 // checkBlockTime2("mainnet");
 
 // return;
 
-// c. Now that you know the answer, you can check the 
+// c. Now that you know the answer, you can check the
 // "Ethereum Average Block Time Chart": https://etherscan.io/chart/blocktime
-
 
 // Exercise 4. Block info.
 //////////////////////////
@@ -221,13 +219,25 @@ const checkBlockTime2 = async (providerName = "mainnet", blocks2check = 3) => {
 // Hint: pass `true` as second parameter to .getBlock(blockNumber, true).
 
 const blockInfo = async () => {
-    
-    // Your code here!
+  let blockNumber = await mainnetProvider.getBlockNumber();
+  let block = await mainnetProvider.getBlock(blockNumber);
+  console.log(block);
 
+  let tx = await block.getTransaction(0);
+  console.log(tx);
+  let txHash = block.transactions[0];
+
+  const txReceipt = await mainnetProvider.getTransactionReceipt(txHash);
+  console.log(txReceipt);
+  console.log("A transaction from", txReceipt.to, "to", txReceipt.from);
+
+  // Long list...
+  block = await mainnetProvider.getBlock(blockNumber, true);
+  console.log(block.prefetchedTransactions);
 };
 
-// blockInfo();
-
+//blockInfo();
+*/
 // Exercise 5. ENS names.
 //////////////////////////
 
@@ -235,18 +245,19 @@ const blockInfo = async () => {
 // address.
 
 const ens = async () => {
-    
-    // Your code here!
+  let unimaAddress = await sepoliaProvider.resolveName("unima.eth");
+  console.log(unimaAddress);
 
+  let ensName = await sepoliaProvider.lookupAddress(unimaAddress);
+  console.log(ensName);
 };
 
-// ens();
-
+ens();
 
 // Exercise 6. Get ETH balance.
 ///////////////////////////////
 
-// a. Ask for the Ether balance of "unima.eth". 
+// a. Ask for the Ether balance of "unima.eth".
 // Hint: remember to be on the Goerli net.
 
 // b. Format the balance nicely with the formatEther utility.
@@ -254,51 +265,53 @@ const ens = async () => {
 // c. Compare the ETH balance for the ENS name "unima.eth" and the balance
 // its address (after resolving it). Are they the same?
 
-// d. Bonus. What is the balance for the address of Vitalik Buterin, the 
-// creator of Ethereum? 
+// d. Bonus. What is the balance for the address of Vitalik Buterin, the
+// creator of Ethereum?
 // Hint: try vitalik.eth
 
 const balance = async (ensName = "unima.eth") => {
+  // Get the balance for "unima.eth".
+  let bal = await sepoliaProvider.getBalance(ensName);
+  // console.log(bal);
 
-   // Your code here!
+  // Nicely formatted.
+  console.log(ensName, "has", ethers.formatEther(bal), "ETH");
 
+  // Check the balance is the same when resolving the ens address.
+  let unimaAddress = await sepoliaProvider.resolveName(ensName);
+  let bal2 = await sepoliaProvider.getBalance(unimaAddress);
+
+  console.log("Are the two balances equal?", bal === bal2 ? "Yes" : "No");
 };
 
-// balance("vitalik.eth");
-
+balance();
 
 // Exercise 7. Get ERC20 Balance.
 /////////////////////////////////
 
 // To get the balance of ERC20 tokens the procedure is a bit more complex.
 // ETH is the native currency of Ethereum, so it's "simply there". Instead,
-// ERC20 tokens are added to Ethereum via smart contracts. So, we need to 
+// ERC20 tokens are added to Ethereum via smart contracts. So, we need to
 // interact with the smart contract of the specific token we want to know
 // the balance of.
 
-// First, we need to know the address of the smart contract. We can use the 
+// First, we need to know the address of the smart contract. We can use the
 // LINK contract.
-const linkAddress = '0x326c977e6efc84e512bb9c30f76e30c160ed06fb';
+const linkAddress = "0x326c977e6efc84e512bb9c30f76e30c160ed06fb";
 
 // At the address, there is only bytecode. So we need to tell Ethers JS, what
 // methods can be invoked. To do so, we pass the Application Binary Interface
-// (ABI) of the contract, available at Etherscan. For your convenience, 
+// (ABI) of the contract, available at Etherscan. For your convenience,
 // the LINK ABI is stored in this directory, under "link_abi.json";
 
-const linkABI = require('./link_abi.json');
+const linkABI = require("./link_abi.json");
 
 // Now your task. Get the balance for LINK for "unima.eth" and "vitalik.eth".
-// Hint: you need first to create a Contract object via `ethers.Contract`, 
+// Hint: you need first to create a Contract object via `ethers.Contract`,
 // then invoke the appropriate smart contract method.
-// Hint2: want to try it with your own address? Get some LINK ERC20 tokens here: 
+// Hint2: want to try it with your own address? Get some LINK ERC20 tokens here:
 // https://faucets.chain.link/goerli
 
-const link = async () => {
-   
-    // Your code here!
-};
+const link = async () => {};
 
-
-// link();
-
-
+//link();

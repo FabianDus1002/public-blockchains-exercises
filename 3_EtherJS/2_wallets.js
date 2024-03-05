@@ -29,7 +29,6 @@ exercise = "1b";
 let baseDevPath = "m/44'/60'/0'/0/";
 console.log(r_wallet["path"]);
 
-exit();
 // Wait is the derivation path?
 // Basically, the mnemonic alone isn't enough to determine an address
 // and you need this extra bit of information. You may learn more here:
@@ -37,8 +36,7 @@ exit();
 // Also:
 // https://vault12.com/securemycrypto/crypto-security-basics/what-is-bip39/
 
-console.log("Derivation path:", wallet.path);
-
+console.log("Derivation path:", r_wallet.path);
 // Your code here!
 
 // exit();
@@ -54,5 +52,15 @@ exercise = 2;
 // Hint: You need to append an index to the derivation path.
 
 // Your code here!
+let mnemonic = r_wallet.mnemonic.phrase;
 
+let path, myWallet;
+for (let i = 0; i < 10; i++) {
+  path = `${baseDevPath}${i}`;
+  myWallet = ethers.HDNodeWallet.fromPhrase(mnemonic, path);
+  console.log("Address", i, myWallet.address);
+  console.log("Private key", i, myWallet.privateKey);
+}
+
+exit();
 // exit();
