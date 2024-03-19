@@ -5,18 +5,17 @@
 ////////////////////////////////////////////////////////////////////////
 
 const hre = require("hardhat");
-console.log('Hardhat\'s default network:', hre.config.defaultNetwork);
+console.log("Hardhat's default network:", hre.config.defaultNetwork);
 
 // Import the wrapped version of ethers by Hardhat.
 // See: https://www.npmjs.com/package/@nomiclabs/hardhat-ethers
 const ethers = hre.ethers;
 console.log("Ethers version:", ethers.version);
 
-
 // Exercise 1. Interact with your new Lock Solidity contract (READ).
 ///////////////////////////////////////////////////////////////
 
-// If you remember from 3_EtherJS/2_signer.js, to interact with a smart 
+// If you remember from 3_EtherJS/2_signer.js, to interact with a smart
 // contract you need three pieces of information:
 // 1. The contract address.
 // 2. The ABI
@@ -34,37 +33,43 @@ const contractAddress = "0x5FbDB2315678afecb367f032d93F642f64180aa3";
 // pattern of execution).
 
 async function main() {
-  
   // b. Get the first of the default Hardhat signers. Print its address, and
   // checks that it matches the first address printed to console when you
   // execute: npx hardhat node
   // Hint: ethers.getSigners() returns an array of signers.
-
-  // Your code here.  
+  hhSigners = await ethers.getSigners();
+  firstSigner = hhSigners[0];
+  console.log("firstSigner: " + firstSigner.address);
 
   // c. Get the provider.
   // Hint: available under hre.ethers.provider;
 
-  // Your code here.
+  const provider = ethers.provider;
+  const { name, chainId } = await provider.getNetwork();
+  console.log(name, chainId);
 
   // d. Get your new contract. Hardhat Ethers automatically fetches the ABI from
   // the artifacts, so you don't need to specify it. Use the method
   // ethers.getContractAt(<name>, <address>, <signer>)
   // then print the contract address.
 
-  // const lock =  Your code here.
-  // console.log(contractName + " address", lock.target); 
+  const lock = await ethers.getContractAt(
+    contractName,
+    contractAddress,
+    firstSigner
+  );
+  console.log(contractName + " address", lock.target);
 
   // Exercise 3. Interact with your new Solidity contract (WRITE).
   ////////////////////////////////////////////////////////////////
 
-  // a. Let's try to withdraw from the lock. 
+  // a. Let's try to withdraw from the lock.
   // Print the balance before and after withdrawal.
-  
+
   // Hint0: the balance of an address is accessible via the provider.
 
   // Hint1: Invoke the asynchronous withdraw method.
-  
+
   // Hint2: Ethers Syntax for formatting formatEther:
   // balance = ethers.formatEther(balance);
 
@@ -72,40 +77,43 @@ async function main() {
   // the reason.
 
   const withdrawAttempt1 = async (lockContract = lock) => {
-    
-    // Your code here.
+    let b1 = await provider.getBalance(firstSigner.address);
+    b1 = ethers.formatEther(b1);
+    console.log("The balance before withdrawing is ", b1);
 
-    console.log('The balance before withdrawing is ', b1);
     console.log("Withdrawing from Lock");
-    
-    // Your code here.
+    await lockContract.withdraw();
 
-    console.log('The balance after withdrawing is ', b2);
+    let b2 = await provider.getBalance(firstSigner.address);
+    b2 = ethers.formatEther(b2);
+    console.log("The balance after withdrawing is ", b2);
   };
-
-  // await withdrawAttempt1();
-  
+  await withdrawAttempt1(lock);
   // Exercise 3. Remove the check for unlock date (WRITE).
   ////////////////////////////////////////////////////////////////////
 
-  // a. Comment out the `require` checking for the unlock date 
+  // a. Comment out the `require` checking for the unlock date
   // inside the Solidity contract.
 
   // b. Deploy the Lock2 contract again and try to withdraw now.
   // Hint: the contract address will be different.
-  
-  const withdrawAgain = async() => {
-    
-    // const newContractAddress = Write the new address;
 
-    // const newLock = Your code here.
+  const withdrawAgain = async () => {
+    const newContractAddress = "0xDc64a140Aa3E981100a9becA4E685f962f0cF6C9";
 
-    await withdrawAttempt1(newLock);
+    // Wrapped Ethers.
+    const newLock = await ethers.getContractAt(
+      contractName,
+      newContractAddress,
+      hhSigner
+    );
+
+    // Can also print:
+    // console.log(newLock.target);
+    // await readContract(newLock);
   };
-  
-  // await withdrawAgain();
-  
 
+  // await withdrawAgain();
 
   // Exercise 4. Bonus. Connect with another address (WRITE).
   //////////////////////////////////////////////////////////
@@ -117,29 +125,26 @@ async function main() {
   // Hint: make sure that the non-owner address has Ether to send a transaction.
 
   const triggerNotOwner = async () => {
-    console.log('Triggering not owner...\n');
-
+    console.log("Triggering not owner...\n");
 
     // const thirdContractAddress = Write the new address;
-    
+
     // b.1 Require the `dotenv` package.
-    // For execution with npx you need to specify the path from the directory 
+    // For execution with npx you need to specify the path from the directory
     // of execution. E.g., if you execute from 4_Hardhat/scripts/:
-    require('dotenv').config({ path: "../../.env" });
+    require("dotenv").config({ path: "../../.env" });
 
     // b.2 Create a new signer with one of your Metamask private keys.
-    
+
     // Your code here.
 
     // b.3 Get the contract instance and then try to withdraw.
     // Hint: You could use the method `getContractManual` created before
 
     // Your code here.
-  
   };
 
   // await triggerNotOwner();
-
 }
 
 // We recommend this pattern to be able to use async/await everywhere

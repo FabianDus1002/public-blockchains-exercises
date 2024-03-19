@@ -21,10 +21,9 @@
 // interesting.
 
 const hre = require("hardhat");
-console.log('Hardhat\'s default network:', hre.config.defaultNetwork);
+console.log("Hardhat's default network:", hre.config.defaultNetwork);
 
 // return;
-
 
 // Exercise 1. Understand Ethers in Hardhat.
 ////////////////////////////////////////////
@@ -50,7 +49,7 @@ console.log("HH Wrapped Ethers version:", hre.ethers.version);
 //////////////////////////////////////////////
 
 // We haven't fully understood the Lock contract and we are already creating
-// a new one? Yes, it's quite easy. 
+// a new one? Yes, it's quite easy.
 
 // a. Copy the contract file "Lock.sol" and creatively rename it as "Lock2.sol".
 
@@ -63,11 +62,10 @@ console.log("HH Wrapped Ethers version:", hre.ethers.version);
 
 // d. Deploy the "new" contract.
 
-
 // Exercise 2. Read data of your new Solidity contract.
 ///////////////////////////////////////////////////////
 
-// If you remember from 3_EtherJS/2_signer.js, to interact with a smart 
+// If you remember from 3_EtherJS/2_signer.js, to interact with a smart
 // contract you need three pieces of information:
 // 1. The contract address.
 // 2. The ABI
@@ -85,7 +83,6 @@ const contractAddress = "0xDc64a140Aa3E981100a9becA4E685f962f0cF6C9";
 // pattern of execution).
 
 async function main() {
-  
   // b. Get the first of the default Hardhat signers. Print its address, and
   // checks that it matches the first address printed to console when you
   // execute: npx hardhat node
@@ -103,31 +100,36 @@ async function main() {
   // hre.ethers.getContractAt(<name>, <address>, <signer>)
   // then print the contract address.
 
-  const lock = await hre.ethers.getContractAt(contractName,
-                                              contractAddress,
-                                              hhSigner);  
-  
+  const lock = await hre.ethers.getContractAt(
+    contractName,
+    contractAddress,
+    hhSigner
+  );
+
   // console.log(lock);
-  
+
   console.log(contractName + " address", lock.target);
 
   // return
 
   // d. Bonus. You can get the contract also without Hardhat's wrapped Ethers.
-  // The standard Ethers.JS requires a bit more code, but is is 
+  // The standard Ethers.JS requires a bit more code, but is is
   // useful to understand how it works.
 
   // First you need to setup a JSON RPC provider. In V5 the code is a bit
   // different, as shown below.
 
-  const getContractManual = async(signer = hhSigner, 
-                                  address = contractAddress) => {
-    
-    // d.1 Fetch the ABI from the artifacts 
+  const getContractManual = async (
+    signer = hhSigner,
+    address = contractAddress
+  ) => {
+    // d.1 Fetch the ABI from the artifacts
     // (it expects contract name = file name).
-    const lock2ABI = require("../artifacts/contracts/" + contractName + 
-                            ".sol/" + contractName + ".json").abi;
-
+    const lock2ABI = require("../artifacts/contracts/" +
+      contractName +
+      ".sol/" +
+      contractName +
+      ".json").abi;
 
     // d.2 Create the contract and print the address.
     const lock = new ethers.Contract(address, lock2ABI, signer);
@@ -135,23 +137,21 @@ async function main() {
     console.log(contractName + " address standard Ethers", lock.target);
 
     return lock;
-
   };
 
   const lock2 = await getContractManual();
 
   // return
-  
+
   // e. Print out the public variables of the contract: owner and unlockTime.
   // Hint: Public variables have automatic getters that can be invoked.
 
   const readContract = async (lockContract = lock) => {
-      
     // Print the owner of the lock.
-    const owner = await lock.owner();
-    console.log("Owner of " + contractName, owner);
+    //const owner = await lock.owner();
+    //console.log("Owner of " + contractName, owner);
 
-    // Print the unlock time. 
+    // Print the unlock time.
     // Be careful! You will get a BigInt, you need first
     // to convert it to a Number and then to a Date so that it is readable.
     // For the conversions these threads might help:
@@ -161,22 +161,21 @@ async function main() {
     let unlockTime = await lock.unlockTime();
     unlockTime = Number(unlockTime);
     console.log(contractName + " unlock timestamp:", unlockTime);
-    let date = new Date((unlockTime * 1000));
+    let date = new Date(unlockTime * 1000);
     console.log(contractName + " unlock date:", date);
   };
 
   await readContract();
-
 }
 
 // We recommend this pattern to be able to use async/await everywhere
 // and properly handle errors.
 main()
-  .then(()=> {
+  .then(() => {
     process.exit(0);
   })
   .catch((error) => {
     console.error(error);
     process.exitCode = 1;
     process.exit();
-});
+  });
